@@ -1,11 +1,24 @@
 # cairn
 
-프로젝트에 "기록이 남는 구조"를 딸각 설치하는 Claude Code 플러그인.
-llm-wiki(journal / problems / decisions / concepts / experiments / howto + index + log) + CLAUDE.md 워크플로우 규칙 + 위키 정합성 체커 + 골든셋 테스트 규약.
+프로젝트에 **기록이 남는 구조**를 딸각 설치하는 도구. 작업 일지 · 문제 기록 · ADR · 개념 정리 · 실험 기록 + 정합성 체커.
+
+[![npm](https://img.shields.io/npm/v/@doogi/cairn)](https://www.npmjs.com/package/@doogi/cairn)
+[![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+> *A record-keeping structure for AI-assisted projects — work journal, problem log, ADRs, and a wiki consistency checker. Works with Claude Code, Codex, Cursor, Gemini CLI, Copilot, Windsurf, Cline. (Rules are written in Korean.)*
 
 > cairn(케언) — 길 위에 돌을 쌓아 다음 사람이 길을 잃지 않게 하는 표식.
 
-출처: [java-heavy-traffic](https://github.com/kimdoogi/java-heavy-traffic)의 wiki 체계와 [AIgateway](https://github.com/kimdoogi/AIgateway)의 문서·골든셋 운영을 일반화했다.
+## 왜
+
+에이전트와 일하면 코드는 쌓이는데 맥락은 안 쌓인다. 세션이 끝나면 "왜 이렇게 짰는지", "그때 그 에러가 뭐였는지", "뭘 시도했다 버렸는지"가 통째로 사라진다. 다음 세션의 에이전트는 그걸 모른 채 같은 삽질을 반복한다.
+
+cairn은 그 맥락을 파일로 떨어뜨린다. 몇 주 뒤의 나와 다음 세션의 에이전트가 **위키만 읽고 이어서 일할 수 있게**.
+
+- **problem log** — 증상·재현·원인·해결·재발 방지. 실패한 시도와 버린 접근도 남긴다. 이게 제일 값비싼 기록이다.
+- **ADR** — 기각한 대안과 그 이유까지. 구두로만 존재하는 결정은 없는 결정이다.
+- **journal + log** — 날짜별 작업과 한 줄 요약. 세션 복구의 진입점.
+- **check.sh** — 기록이 썩는 걸 기계가 잡는다. 링크 깨짐, frontmatter 누락, index 미등록, 번호 꼬임.
 
 ## 설치
 
@@ -16,15 +29,31 @@ llm-wiki(journal / problems / decisions / concepts / experiments / howto + index
 /plugin install cairn@cairn
 ```
 
-**그 외 에이전트** (Codex · Cursor · Gemini CLI · Copilot · Windsurf · Cline · Kiro) — 프로젝트 루트에서:
+**그 외 에이전트** — 프로젝트 루트에서:
 
 ```bash
 npx @doogi/cairn init
 ```
 
-`wiki/`를 만들고, 그 프로젝트에서 감지된 에이전트의 규칙 파일에 워크플로우 블록을 써 넣는다.
+## 생기는 것
 
-| 에이전트 | 쓰는 파일 |
+```
+wiki/
+├── index.md          현재 상태 · 전체 페이지 목록 · 다음 번호   ← 세션 시작점
+├── log.md            날짜별 한 줄 요약 (append-only)
+├── check.sh          정합성 체커
+├── journal/          2026-08-21-<슬러그>.md   날짜별 작업 기록
+├── problems/         P-001-<슬러그>.md        문제 → 해결
+├── decisions/        D-001-<슬러그>.md        ADR
+├── concepts/         <슬러그>.md              학습한 개념
+├── experiments/      E1-<슬러그>.md           측정·실험
+├── howto/            런북
+└── _templates/       위 5종 템플릿
+```
+
+그리고 감지된 에이전트의 규칙 파일에 워크플로우 블록이 들어간다:
+
+| 에이전트 | 파일 |
 |---|---|
 | Codex · opencode · Amp 등 | `AGENTS.md` (범용 표준, 항상 씀) |
 | Claude Code | `CLAUDE.md` |
@@ -35,33 +64,52 @@ npx @doogi/cairn init
 | Cline | `.clinerules/cairn.md` |
 | Kiro | `.kiro/steering/cairn.md` |
 
-`--agents=cursor,codex`로 골라 쓰고, `--all`로 전부 쓴다. 블록은 `<!-- cairn:start -->` 마커로 감싸므로 재실행하면 그 블록만 갱신되고 나머지 내용은 그대로 둔다. 기존 `wiki/` 파일도 덮어쓰지 않는다(`--force` 제외).
+`--agents=cursor,codex`로 골라 쓰고 `--all`로 전부 쓴다. 블록은 `<!-- cairn:start -->` 마커로 감싸므로 **재실행하면 그 블록만 갱신**되고 직접 쓴 규칙은 그대로 남는다. 기존 `wiki/` 파일도 덮어쓰지 않는다 (`--force` 제외).
 
-## 사용
+## 쓰는 법
 
-- 새 프로젝트에서 `cairn init` (또는 "위키 체계 깔아줘"): `wiki/` 생성 + CLAUDE.md에 워크플로우 규칙 병합 + 첫 journal 작성.
-- 설치 후에는 CLAUDE.md가 매 세션 루프를 강제한다: index/log 읽기 → journal 생성 → 문제·결정 즉시 기록 → index·log 갱신.
-- 점검: `bash wiki/check.sh` 또는 `npx @doogi/cairn check` (체커가 위키와 함께 복사되므로 CI에도 같은 줄을 넣으면 된다).
+깔고 나면 규칙이 에이전트 규칙 파일에 박히므로 **에이전트가 알아서 한다.** 사람이 외울 건 거의 없다.
 
-## 왜
+| 언제 | 무슨 일이 일어나나 | 안 하면 이렇게 시킨다 |
+|---|---|---|
+| 세션 시작 | `index.md` → `log.md` → 진행 중 journal 순으로 읽고 시작 | "위키 읽고 시작해" |
+| 에러·막힘 | `problems/P-NNN-*.md` 즉시 생성 | "방금 그거 problem으로 남겨" |
+| 설계 선택 | `decisions/D-NNN-*.md` 작성 | "이 결정 ADR로 남겨" |
+| 세션 종료 | journal 마무리 → `log.md` 한 줄 → `index.md` 갱신 | "오늘 작업 위키에 정리해" |
 
-코드는 남는데 "무엇을 왜 어떻게 했고 뭐가 문제였는지"는 안 남는다. 세션이 끝나면 에이전트의 맥락도 같이 사라진다.
-cairn은 그 맥락을 파일로 떨어뜨려서, 몇 주 뒤의 나와 다음 세션의 에이전트가 위키만 읽고 이어서 일하게 만든다.
+## 점검
 
-- **problem log** — 에러와 막힌 지점을 증상·재현·원인·해결·재발 방지까지. 실패한 시도도 남긴다.
-- **ADR** — 기각한 대안과 이유까지. 구두로만 존재하는 결정은 없는 결정이다.
-- **journal + log** — 날짜별 작업과 한 줄 요약. 세션 복구의 진입점.
-- **골든셋** — 외부 API·포맷 변환을 다루면 픽스처 녹화 → 재생 → 스냅샷이 "완성"의 정의다.
+```bash
+bash wiki/check.sh          # 또는: npx @doogi/cairn check
+```
+
+frontmatter 누락, 깨진 상대 링크, index에 등록 안 된 고아 페이지, index "다음 번호" 역전을 잡는다. 종료 코드 0/1이라 CI에 그대로 넣으면 된다.
+
+```yaml
+- run: bash wiki/check.sh
+```
+
+체커는 위키와 함께 복사되므로 cairn이 안 깔린 CI 러너에서도 돈다.
+
+## 골든셋
+
+외부 API·프로토콜·포맷 변환을 다루는 프로젝트라면 `skills/cairn/references/goldenset.md`의 규약을 함께 쓴다.
+
+실 응답을 새니타이저에 통과시켜 `fixtures/`에 녹화 → 테스트는 **픽스처 재생만**(네트워크 금지) → 스냅샷 비교 → 새 녹화는 디렉토리 스캔으로 자동 편입. 골든셋이 붙기 전까지 어댑터는 완성이 아니다.
 
 ## 구성
 
 | 경로 | 내용 |
 |---|---|
 | `skills/cairn/SKILL.md` | 스킬 본문 — init 절차, 세션 루프, 기록 규칙 |
-| `skills/cairn/template/wiki/` | 그대로 복사되는 위키 뼈대 + `_templates/` 5종 + `check.sh` |
-| `skills/cairn/template/CLAUDE.cairn.md` | 프로젝트 CLAUDE.md에 붙이는 워크플로우 규칙 |
-| `skills/cairn/references/goldenset.md` | 골든셋(픽스처 녹화 → 재생 → 스냅샷) 규약 |
-| `cli/cairn.js` | npm 설치기 — 에이전트 감지 + 규칙 블록 주입 (의존성 0) |
+| `skills/cairn/template/wiki/` | 복사되는 위키 뼈대 + 템플릿 5종 + `check.sh` |
+| `skills/cairn/template/CLAUDE.cairn.md` | 에이전트 규칙 파일에 주입되는 워크플로우 블록 |
+| `skills/cairn/references/goldenset.md` | 골든셋 규약 |
+| `cli/cairn.js` | npm 설치기 — 에이전트 감지 + 블록 주입. 의존성 0 |
+
+## 출처
+
+[java-heavy-traffic](https://github.com/kimdoogi/java-heavy-traffic)의 wiki 체계와 [AIgateway](https://github.com/kimdoogi/AIgateway)의 문서·골든셋 운영을 일반화했다.
 
 ## 라이선스
 
