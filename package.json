@@ -1,14 +1,40 @@
 {
   "name": "@doogi/cairn",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Drop a record-keeping structure into any project — work journal, problem log, ADRs, concepts, experiments, plus a wiki consistency checker. Works with Claude Code, Codex, Cursor, Gemini CLI, Copilot, Windsurf, Cline.",
-  "bin": { "cairn": "./cli/cairn.js" },
-  "files": ["cli", "skills", ".claude-plugin", "README.md", "LICENSE"],
-  "keywords": ["claude-code", "agents", "agents-md", "wiki", "adr", "documentation", "cursor", "codex", "gemini-cli", "copilot"],
-  "engines": { "node": ">=18" },
+  "bin": {
+    "cairn": "./cli/cairn.js"
+  },
+  "files": [
+    "cli",
+    "skills",
+    ".claude-plugin",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "claude-code",
+    "agents",
+    "agents-md",
+    "wiki",
+    "adr",
+    "documentation",
+    "cursor",
+    "codex",
+    "gemini-cli",
+    "copilot"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "license": "MIT",
   "author": "kimdoogi",
   "homepage": "https://github.com/kimdoogi/cairn",
-  "repository": { "type": "git", "url": "git+https://github.com/kimdoogi/cairn.git" },
-  "bugs": { "url": "https://github.com/kimdoogi/cairn/issues" }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kimdoogi/cairn.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kimdoogi/cairn/issues"
+  }
 }

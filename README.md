@@ -1,6 +1,7 @@
 # cairn
 
-프로젝트에 **기록이 남는 구조**를 딸각 설치하는 도구. 작업 일지 · 문제 기록 · ADR · 개념 정리 · 실험 기록 + 정합성 체커.
+프로젝트에 **기록이 남는 구조**를 딸각 설치하는 도구. 작업 일지 · 문제 기록 · 결정 기록(ADR) · 개념 정리 · 실험 기록 + 정합성 체커.
+코딩뿐 아니라 리서치·집필·기획·학습 작업에도 그대로 쓴다.
 
 [![npm](https://img.shields.io/npm/v/@doogi/cairn)](https://www.npmjs.com/package/@doogi/cairn)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -34,6 +35,8 @@ cairn은 그 맥락을 파일로 떨어뜨린다. 몇 주 뒤의 나와 다음 �
 ```bash
 npx @doogi/cairn init
 ```
+
+프로젝트에 `package.json`·`go.mod`·`pom.xml`·`Cargo.toml`·`pyproject.toml`·`src/` 같은 게 있으면 **코드 프로젝트 규칙**(문서 우선, 커밋에 `P-NNN`, 골든셋)이 추가로 붙고, 없으면 범용 규칙만 붙는다. `--profile=dev|general`로 직접 고를 수도 있다.
 
 ## 생기는 것
 
@@ -80,16 +83,29 @@ wiki/
 ## 점검
 
 ```bash
-bash wiki/check.sh          # 또는: npx @doogi/cairn check
+bash wiki/check.sh                 # 점검만
+bash wiki/check.sh --write-index   # index 목록·다음 번호를 파일 스캔으로 재생성 후 점검
 ```
 
-frontmatter 누락, 깨진 상대 링크, index에 등록 안 된 고아 페이지, index "다음 번호" 역전을 잡는다. 종료 코드 0/1이라 CI에 그대로 넣으면 된다.
+frontmatter 누락, 깨진 상대 링크, index에 등록 안 된 고아 페이지, **번호 중복**, index "다음 번호" 역전을 잡는다. 종료 코드 0/1이라 CI에 그대로 넣으면 된다.
 
 ```yaml
 - run: bash wiki/check.sh
 ```
 
 체커는 위키와 함께 복사되므로 cairn이 안 깔린 CI 러너에서도 돈다.
+
+## 여러 명이 작업할 때
+
+정합성이 깨지는 지점 셋은 전부 "중앙 상태를 손으로 관리"해서 생긴다.
+
+| 문제 | 해결 |
+|---|---|
+| `log.md` append 충돌 | `.gitattributes`의 `wiki/log.md merge=union` — init이 자동으로 넣는다. 양쪽 줄이 다 남는다 |
+| `index.md` 충돌 | 목록 섹션은 손으로 쓰지 않는다. 충돌하면 `--write-index`로 재생성. 사람이 쓰는 건 "현재 상태" 몇 줄뿐 |
+| 번호 충돌 (`P-001` 둘) | `check.sh`가 중복을 잡는다. 머지 시 재번호하고 `grep -rn`으로 참조를 함께 고친다 |
+
+관습 둘: **위키를 코드와 같은 PR에 넣는다** (기록이 리뷰에 걸린다. 별도 PR로 빼면 반드시 밀린다). **journal은 사람마다 별개 파일** (`2026-08-21-doogi-<슬러그>.md` — 파일이 다르면 충돌 자체가 없다).
 
 ## 골든셋
 
@@ -103,7 +119,8 @@ frontmatter 누락, 깨진 상대 링크, index에 등록 안 된 고아 페이�
 |---|---|
 | `skills/cairn/SKILL.md` | 스킬 본문 — init 절차, 세션 루프, 기록 규칙 |
 | `skills/cairn/template/wiki/` | 복사되는 위키 뼈대 + 템플릿 5종 + `check.sh` |
-| `skills/cairn/template/CLAUDE.cairn.md` | 에이전트 규칙 파일에 주입되는 워크플로우 블록 |
+| `skills/cairn/template/rules-core.md` | 에이전트 규칙 파일에 주입되는 범용 워크플로우 블록 |
+| `skills/cairn/template/rules-dev.md` | 코드 프로젝트에 덧붙는 규칙 (문서 우선·커밋 규약·골든셋) |
 | `skills/cairn/references/goldenset.md` | 골든셋 규약 |
 | `cli/cairn.js` | npm 설치기 — 에이전트 감지 + 블록 주입. 의존성 0 |
 
