@@ -1,0 +1,12 @@
+{
+  "name": "cairn",
+  "description": "Drop a record-keeping structure into any project: an llm-wiki (journal / problems / decisions / concepts / experiments / howto + index + log), CLAUDE.md workflow rules, a wiki consistency checker, and a golden-set testing convention.",
+  "version": "0.1.0",
+  "author": {
+    "name": "kimdoogi",
+    "url": "https://github.com/kimdoogi"
+  },
+  "homepage": "https://github.com/kimdoogi/cairn",
+  "license": "MIT",
+  "keywords": ["wiki", "documentation", "adr", "journal", "golden-set", "workflow"]
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "cairn",
+  "description": "Record-keeping structure for projects — llm-wiki, ADRs, problem log, golden-set testing.",
+  "owner": {
+    "name": "kimdoogi",
+    "url": "https://github.com/kimdoogi"
+  },
+  "plugins": [
+    {
+      "name": "cairn",
+      "description": "Install and maintain an llm-wiki (journal/problems/decisions/concepts/experiments) + CLAUDE.md workflow rules + golden-set test convention.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
