@@ -8,7 +8,7 @@ tags: [index]
 # <프로젝트> 위키
 
 > 세션 시작 시 이 페이지 → [log.md](log.md) 최근 항목 → 진행 중 journal 순으로 읽는다.
-> 워크플로우 규칙: [../CLAUDE.md](../CLAUDE.md) · 사용법: [howto/wiki-workflow.md](howto/wiki-workflow.md)
+> 워크플로우 규칙: [../AGENTS.md](../AGENTS.md) · 사용법: [howto/wiki-workflow.md](howto/wiki-workflow.md)
 
 ## 현재 상태
 - **단계**: (지금 무엇을 하고 있나)

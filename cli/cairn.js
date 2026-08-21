@@ -40,7 +40,7 @@ const TARGETS = [
 function die(msg) { console.error(`cairn: ${msg}`); process.exit(1); }
 
 function parseArgs(argv) {
-  const out = { cmd: 'init', dir: process.cwd(), agents: null, all: false, force: false, profile: 'auto', writeIndex: false };
+  const out = { cmd: 'init', dir: process.cwd(), agents: null, all: false, force: false, profile: 'auto', writeIndex: false, lang: 'auto' };
   for (const a of argv) {
     if (a === 'init' || a === 'check' || a === 'help') out.cmd = a;
     else if (a === '--all') out.all = true;
@@ -50,6 +50,10 @@ function parseArgs(argv) {
     else if (a === '-v' || a === '--version') out.cmd = 'version';
     else if (a.startsWith('--agents=')) out.agents = a.slice(9).split(',').map(s => s.trim()).filter(Boolean);
     else if (a.startsWith('--dir=')) out.dir = path.resolve(a.slice(6));
+    else if (a.startsWith('--lang=')) {
+      out.lang = a.slice(7);
+      if (!['auto', 'ko', 'en'].includes(out.lang)) die(`unknown lang: ${out.lang}`);
+    }
     else if (a.startsWith('--profile=')) {
       out.profile = a.slice(10);
       if (!['auto', 'dev', 'general'].includes(out.profile)) die(`unknown profile: ${out.profile}`);
@@ -68,20 +72,27 @@ Options:
   --dir=<path>        project root (default: cwd)
   --agents=a,b        write rules only for these: ${TARGETS.map(t => t.id).join(', ')}
   --profile=P         auto (default) | dev (adds code-project rules) | general
+  --lang=L            auto (default, from $LANG) | ko | en
   --all               write rules for every known agent
   --force             overwrite existing wiki files
 
 Claude Code: /plugin marketplace add kimdoogi/cairn && /plugin install cairn@cairn`;
 
 // ── rules payload ──────────────────────────────────────────────────────────
+function resolveLang(want) {
+  if (want !== 'auto') return want;
+  return /^ko/i.test(process.env.LC_ALL || process.env.LANG || '') ? 'ko' : 'en';
+}
+
 function resolveProfile(root, want) {
   if (want !== 'auto') return want;
   return CODE_MARKERS.some(m => fs.existsSync(path.join(root, m))) ? 'dev' : 'general';
 }
 
-function rulesBody(profile) {
-  const read = f => fs.readFileSync(path.join(TEMPLATE, f), 'utf8').trim();
-  return profile === 'dev' ? `${read('rules-core.md')}\n\n${read('rules-dev.md')}` : read('rules-core.md');
+function rulesBody(profile, lang) {
+  const suffix = lang === 'ko' ? '' : '.en';
+  const read = n => fs.readFileSync(path.join(TEMPLATE, `${n}${suffix}.md`), 'utf8').trim();
+  return profile === 'dev' ? `${read('rules-core')}\n\n${read('rules-dev')}` : read('rules-core');
 }
 
 // wiki/log.md is append-only, so two branches always collide on the last line.
@@ -140,17 +151,19 @@ function pickTargets(root, opts) {
 }
 
 // ── wiki ───────────────────────────────────────────────────────────────────
-function installWiki(root, force) {
+function installWiki(root, force, lang) {
   const dest = path.join(root, 'wiki');
   const existed = fs.existsSync(dest);
-  fs.cpSync(path.join(TEMPLATE, 'wiki'), dest, { recursive: true, force, errorOnExist: false });
+  fs.cpSync(path.join(TEMPLATE, lang === 'ko' ? 'wiki' : 'wiki.en'), dest, { recursive: true, force, errorOnExist: false });
+  fs.cpSync(path.join(TEMPLATE, 'check.sh'), path.join(dest, 'check.sh'), { force: true });  // one checker, both languages
   fs.chmodSync(path.join(dest, 'check.sh'), 0o755);
   if (existed && !force) return { dest, status: 'merged (existing files kept)' };
   const today = new Date().toISOString().slice(0, 10);
   const project = path.basename(root);
   for (const rel of ['index.md', 'log.md', 'howto/wiki-workflow.md']) {   // not _templates/ — placeholders stay
     const f = path.join(dest, rel);
-    fs.writeFileSync(f, fs.readFileSync(f, 'utf8').replace(/YYYY-MM-DD/g, today).replace(/<프로젝트>/g, project));
+    fs.writeFileSync(f, fs.readFileSync(f, 'utf8')
+      .replace(/YYYY-MM-DD/g, today).replace(/<프로젝트>|<project>/g, project));
   }
   return { dest, status: existed ? 'merged' : 'created' };
 }
@@ -170,17 +183,18 @@ if (opts.cmd === 'version') { console.log(require(path.join(PKG_ROOT, 'package.j
 if (!fs.existsSync(opts.dir)) die(`no such directory: ${opts.dir}`);
 if (opts.cmd === 'check') check(opts.dir, opts.writeIndex);
 
-const wiki = installWiki(opts.dir, opts.force);
+const lang = resolveLang(opts.lang);
+const wiki = installWiki(opts.dir, opts.force, lang);
 console.log(`wiki/  ${wiki.status}`);
 const profile = resolveProfile(opts.dir, opts.profile);
 const attrs = gitAttributes(opts.dir);
 if (attrs) console.log(`.gitattributes  ${attrs}  (wiki/log.md merge=union)`);
-const body = rulesBody(profile);
+const body = rulesBody(profile, lang);
 for (const t of pickTargets(opts.dir, opts)) console.log(`${t.file}  ${writeRules(opts.dir, t, body)}  (${t.id})`);
-console.log(`profile: ${profile}${profile === 'dev' ? ' (code-project rules included)' : ''}`);
+console.log(`profile: ${profile}${profile === 'dev' ? ' (code-project rules included)' : ''} · lang: ${lang}`);
 console.log(`
 next:
   1. fill in wiki/index.md — project name, current state
   2. write the first journal: wiki/journal/${new Date().toISOString().slice(0, 10)}-<slug>.md
   3. move existing design decisions into wiki/decisions/D-001-*.md
-  4. verify: bash wiki/check.sh   (index 갱신은 --write-index)`);
+  4. verify: bash wiki/check.sh   (add --write-index to refresh the index lists)`);

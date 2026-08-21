@@ -6,7 +6,7 @@
 [![npm](https://img.shields.io/npm/v/@doogi/cairn)](https://www.npmjs.com/package/@doogi/cairn)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-> *A record-keeping structure for AI-assisted projects — work journal, problem log, ADRs, and a wiki consistency checker. Works with Claude Code, Codex, Cursor, Gemini CLI, Copilot, Windsurf, Cline. (Rules are written in Korean.)*
+English: [README.en.md](README.en.md)
 
 > cairn(케언) — 길 위에 돌을 쌓아 다음 사람이 길을 잃지 않게 하는 표식.
 
@@ -67,7 +67,7 @@ wiki/
 | Cline | `.clinerules/cairn.md` |
 | Kiro | `.kiro/steering/cairn.md` |
 
-`--agents=cursor,codex`로 골라 쓰고 `--all`로 전부 쓴다. 블록은 `<!-- cairn:start -->` 마커로 감싸므로 **재실행하면 그 블록만 갱신**되고 직접 쓴 규칙은 그대로 남는다. 기존 `wiki/` 파일도 덮어쓰지 않는다 (`--force` 제외).
+`--agents=cursor,codex`로 골라 쓰고 `--all`로 전부 쓴다. 위키·규칙 언어는 `--lang=ko|en`(기본값은 `$LANG`에서 자동). 블록은 `<!-- cairn:start -->` 마커로 감싸므로 **재실행하면 그 블록만 갱신**되고 직접 쓴 규칙은 그대로 남는다. 기존 `wiki/` 파일도 덮어쓰지 않는다 (`--force` 제외).
 
 ## 쓰는 법
 
@@ -118,9 +118,10 @@ frontmatter 누락, 깨진 상대 링크, index에 등록 안 된 고아 페이�
 | 경로 | 내용 |
 |---|---|
 | `skills/cairn/SKILL.md` | 스킬 본문 — init 절차, 세션 루프, 기록 규칙 |
-| `skills/cairn/template/wiki/` | 복사되는 위키 뼈대 + 템플릿 5종 + `check.sh` |
-| `skills/cairn/template/rules-core.md` | 에이전트 규칙 파일에 주입되는 범용 워크플로우 블록 |
-| `skills/cairn/template/rules-dev.md` | 코드 프로젝트에 덧붙는 규칙 (문서 우선·커밋 규약·골든셋) |
+| `skills/cairn/template/wiki/`, `wiki.en/` | 복사되는 위키 뼈대 + 템플릿 5종 (한국어·영어) |
+| `skills/cairn/template/check.sh` | 정합성 체커 (한 벌로 두 언어 모두 처리) |
+| `skills/cairn/template/rules-core*.md` | 에이전트 규칙 파일에 주입되는 범용 워크플로우 블록 |
+| `skills/cairn/template/rules-dev*.md` | 코드 프로젝트에 덧붙는 규칙 (문서 우선·커밋 규약·골든셋) |
 | `skills/cairn/references/goldenset.md` | 골든셋 규약 |
 | `cli/cairn.js` | npm 설치기 — 에이전트 감지 + 블록 주입. 의존성 0 |
 

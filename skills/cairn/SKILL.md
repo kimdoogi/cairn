@@ -14,19 +14,20 @@ description: 프로젝트에 기록 체계(journal/problems/decisions/concepts/e
 이 SKILL.md가 있는 폴더가 `$SKILL_DIR`이다. 프로젝트 루트에서:
 
 ```bash
-cp -R "$SKILL_DIR/template/wiki" ./wiki
+cp -R "$SKILL_DIR/template/wiki" ./wiki      # 영어로 쓸 프로젝트면 template/wiki.en
+cp "$SKILL_DIR/template/check.sh" ./wiki/    # 체커는 한 벌로 두 언어 모두 처리한다
 ```
 
 그다음 (에이전트가 직접):
 
 1. `wiki/index.md`의 `<프로젝트>` 자리와 "현재 상태", 각 페이지의 `date`를 실제 값으로 채운다.
-2. **규칙 주입** — `$SKILL_DIR/template/rules-core.md`를 프로젝트의 에이전트 규칙 파일에 붙여넣는다. 코드 프로젝트면 `rules-dev.md`도 이어 붙인다. 붙이는 파일은 그 프로젝트가 쓰는 것 전부: `CLAUDE.md`, `AGENTS.md`(Codex·opencode 등 범용 표준), `GEMINI.md`, `.cursor/rules/cairn.mdc`, `.github/copilot-instructions.md`, `.windsurf/rules/cairn.md`, `.clinerules/cairn.md`, `.kiro/steering/cairn.md`. 이미 내용이 있으면 아래에 덧붙이고, `<!-- cairn:start -->` / `<!-- cairn:end -->` 마커로 감싼다 (나중에 그 블록만 갱신할 수 있게).
+2. **규칙 주입** — `$SKILL_DIR/template/rules-core.md`(영어는 `rules-core.en.md`)를 프로젝트의 에이전트 규칙 파일에 붙여넣는다. 코드 프로젝트면 `rules-dev.md`(`rules-dev.en.md`)도 이어 붙인다. 붙이는 파일은 그 프로젝트가 쓰는 것 전부: `CLAUDE.md`, `AGENTS.md`(Codex·opencode 등 범용 표준), `GEMINI.md`, `.cursor/rules/cairn.mdc`, `.github/copilot-instructions.md`, `.windsurf/rules/cairn.md`, `.clinerules/cairn.md`, `.kiro/steering/cairn.md`. 이미 내용이 있으면 아래에 덧붙이고, `<!-- cairn:start -->` / `<!-- cairn:end -->` 마커로 감싼다 (나중에 그 블록만 갱신할 수 있게).
 3. git 저장소면 `.gitattributes`에 `wiki/log.md merge=union` 한 줄을 넣는다 (append 충돌 자동 해소).
 4. 첫 journal(`wiki/journal/YYYY-MM-DD-wiki-setup.md`)을 만들어 왜 이 체계를 깔았는지 적고, `wiki/log.md`에 한 줄 append.
 5. 이미 정해진 결정이 있으면 `D-001`부터 옮겨 적는다 (구두로만 존재하는 결정 = 없는 결정).
 6. `bash wiki/check.sh --write-index`로 index 목록을 채우고 점검. CI가 있으면 `bash wiki/check.sh`를 워크플로우에 넣는다.
 
-npm 경로(`npx @doogi/cairn init`)는 1~3번과 6번을 자동으로 한다.
+npm 경로(`npx @doogi/cairn init`)는 1~3번과 6번을 자동으로 한다. `--lang=ko|en`으로 언어를 고르고, 생략하면 `$LANG`에서 판단한다.
 
 **프로필** — 코드 프로젝트(`package.json`·`go.mod`·`pom.xml`·`Cargo.toml`·`pyproject.toml`·`src/` 등이 있으면)는 `rules-dev.md`까지, 그 외(리서치·집필·기획·학습)는 `rules-core.md`만. cairn은 코딩 전용이 아니다 — 문제·결정·시도의 기록은 어떤 작업에나 같은 값을 한다.
 
@@ -34,7 +35,7 @@ npm 경로(`npx @doogi/cairn init`)는 1~3번과 6번을 자동으로 한다.
 
 ## 2. 세션 루프와 기록 규칙
 
-원본은 `$SKILL_DIR/template/rules-core.md`(+ 코드 프로젝트면 `rules-dev.md`)다. 설치하면 그 내용이 프로젝트 규칙 파일에 들어가므로 매 세션 자동으로 걸린다. **이 파일에 다시 옮겨 적지 않는다** — 두 벌이 되면 반드시 어긋난다.
+원본은 `$SKILL_DIR/template/rules-core.md`(+ 코드 프로젝트면 `rules-dev.md`, 영어는 `.en.md`)다. 설치하면 그 내용이 프로젝트 규칙 파일에 들어가므로 매 세션 자동으로 걸린다. **이 파일에 다시 옮겨 적지 않는다** — 두 벌이 되면 반드시 어긋난다.
 
 요약: 읽기(index → log → 진행 중 journal) → journal 생성 → 작업 중 발생 즉시 기록(problem/decision/concept/experiment) → 종료 시 journal 마무리 → log 한 줄 → index 갱신.
 

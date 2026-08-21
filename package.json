@@ -1,6 +1,6 @@
 {
   "name": "@doogi/cairn",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Drop a record-keeping structure into any project — work journal, problem log, ADRs, concepts, experiments, plus a wiki consistency checker. Works with Claude Code, Codex, Cursor, Gemini CLI, Copilot, Windsurf, Cline.",
   "bin": {
     "cairn": "./cli/cairn.js"
